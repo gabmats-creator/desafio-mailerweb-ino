@@ -1,0 +1,24 @@
+# ==========================================
+# Core da Aplicação
+# ==========================================
+fastapi
+uvicorn[standard]
+fastapi-pagination
+
+# ==========================================
+# Banco de Dados (PostgreSQL Async)
+# ==========================================
+sqlalchemy[asyncio]
+asyncpg
+
+# ==========================================
+# Configurações e Variáveis de Ambiente
+# ==========================================
+pydantic-settings
+
+# ==========================================
+# Testes
+# ==========================================
+pytest
+pytest-asyncio
+httpx

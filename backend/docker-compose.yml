@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: mailerweb_db
+    restart: always
+    environment:
+      # Valores fixos exclusivos para o ambiente de desenvolvimento local
+      POSTGRES_USER: mailer_user
+      POSTGRES_PASSWORD: mailer_pass
+      POSTGRES_DB: mailerweb_db
+    ports:
+      # Mapeia a porta 5433 da máquina para a 5432 do container
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailer_user -d mailerweb_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: mailerweb_api
+    restart: always
+    ports:
+      # Mapeia a porta 8080 da máquina para a 8000 do container
+      - "8080:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
