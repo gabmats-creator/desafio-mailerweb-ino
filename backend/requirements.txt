@@ -1,24 +1,21 @@
-# ==========================================
-# Core da Aplicação
-# ==========================================
-fastapi
-uvicorn[standard]
-fastapi-pagination
+# Web Framework
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9  # Obrigatório para o OAuth2PasswordRequestForm (Login do Swagger)
 
-# ==========================================
-# Banco de Dados (PostgreSQL Async)
-# ==========================================
-sqlalchemy[asyncio]
-asyncpg
+# Configurações e Validação
+pydantic==2.6.4
+email-validator
+pydantic-settings==2.2.1
 
-# ==========================================
-# Configurações e Variáveis de Ambiente
-# ==========================================
-pydantic-settings
+# Banco de Dados e ORM
+SQLAlchemy==2.0.29
+asyncpg==0.29.0
+fastapi-pagination==0.12.24
 
-# ==========================================
-# Testes
-# ==========================================
-pytest
-pytest-asyncio
-httpx
+passlib[bcrypt]==1.7.4
+PyJWT==2.8.0
+
+# Segurança e Autenticação
+bcrypt==4.1.2
+PyJWT==2.8.0
