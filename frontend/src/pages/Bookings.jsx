@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/axios';
-import { Plus, Trash2, Users, Clock, MapPin } from 'lucide-react';
-import { Alert } from '../components/Alert'; // <-- Importado o Alerta
+import { Plus, Trash2, Users, Clock, MapPin, Edit2, X } from 'lucide-react';
+import { Alert } from '../components/Alert';
 
 export function Bookings() {
     const [bookings, setBookings] = useState([]);
     const [rooms, setRooms] = useState([]);
+
+    const [editingId, setEditingId] = useState(null);
+
     const [formData, setFormData] = useState({ title: '', roomId: '', startAt: '', endAt: '', participants: '' });
-    const [errorMessage, setErrorMessage] = useState(null); // <-- Estado para gerenciar a mensagem
+    const [errorMessage, setErrorMessage] = useState(null);
 
     useEffect(() => {
         api.get('/rooms/').then(res => setRooms(res.data.items || []));
@@ -19,22 +22,37 @@ export function Bookings() {
         setBookings(res.data.items || []);
     };
 
+    const resetForm = () => {
+        setFormData({ title: '', roomId: '', startAt: '', endAt: '', participants: '' });
+        setEditingId(null);
+        setErrorMessage(null);
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
-        setErrorMessage(null); // <-- Limpa erros anteriores antes de tentar novamente
+        setErrorMessage(null);
         try {
             const payload = {
                 ...formData,
                 roomId: parseInt(formData.roomId),
-                participants: formData.participants.split(',').map(i => i.trim())
+                // Tratamento para garantir que participants vire array tanto na criação quanto na edição
+                participants: typeof formData.participants === 'string'
+                    ? formData.participants.split(',').map(i => i.trim()).filter(i => i !== '')
+                    : formData.participants
             };
-            await api.post('/bookings/', payload);
-            setFormData({ title: '', roomId: '', startAt: '', endAt: '', participants: '' });
+
+            // <-- Se tiver editingId, faz PUT. Se não, faz POST.
+            if (editingId) {
+                await api.put(`/bookings/${editingId}`, payload);
+            } else {
+                await api.post('/bookings/', payload);
+            }
+
+            resetForm();
             fetchBookings();
         } catch (err) {
-            // <-- Tratamento inteligente de erro (Texto ou Array 422)
             const detail = err.response?.data?.detail;
-            let message = "Erro inesperado ao criar reserva.";
+            let message = "Erro inesperado ao processar reserva.";
 
             if (typeof detail === 'string') {
                 message = detail;
@@ -47,7 +65,19 @@ export function Bookings() {
         }
     };
 
-    // Declarando o handleCancel (que estava faltando) com a mesma lógica de erro
+    // <-- Função que joga os dados da reserva pro formulário
+    const handleEdit = (booking) => {
+        setEditingId(booking.id);
+        setFormData({
+            title: booking.title,
+            roomId: booking.roomId,
+            startAt: new Date(booking.startAt).toISOString().slice(0, 16),
+            endAt: new Date(booking.endAt).toISOString().slice(0, 16),
+            participants: booking.participants.join(', ')
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const handleCancel = async (id) => {
         if (!window.confirm("Deseja cancelar esta reserva?")) return;
         setErrorMessage(null);
@@ -59,7 +89,7 @@ export function Bookings() {
             let message = "Erro inesperado ao cancelar reserva.";
             if (typeof detail === 'string') message = detail;
             else if (Array.isArray(detail)) message = detail[0]?.msg || "Erro de validação.";
-            
+
             setErrorMessage(message);
             setTimeout(() => setErrorMessage(null), 5000);
         }
@@ -67,7 +97,6 @@ export function Bookings() {
 
     return (
         <div className="max-w-5xl mx-auto">
-            {/* <-- Inserindo o componente de Alerta no topo */}
             <Alert message={errorMessage} onClose={() => setErrorMessage(null)} />
 
             <header className="mb-8">
@@ -79,19 +108,32 @@ export function Bookings() {
                 {/* Formulário */}
                 <div className="lg:col-span-5">
                     <form onSubmit={handleCreate} className="bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-4 sticky top-8">
-                        <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                            <Plus size={20} className="text-blue-500" /> Nova Reserva
-                        </h2>
+
+                        {/* <-- Cabeçalho do formulário dinâmico (Nova vs Editar) */}
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
+                                {editingId ? (
+                                    <><Edit2 size={20} className="text-amber-500" /> Editar Reserva</>
+                                ) : (
+                                    <><Plus size={20} className="text-blue-500" /> Nova Reserva</>
+                                )}
+                            </h2>
+                            {editingId && (
+                                <button type="button" onClick={resetForm} className="text-slate-400 hover:text-white transition-colors">
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
 
                         <input
                             placeholder="Título da Reunião"
-                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                             value={formData.title} required
                         />
 
                         <select
-                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-white"
                             onChange={e => setFormData({ ...formData, roomId: e.target.value })}
                             value={formData.roomId} required
                         >
@@ -100,21 +142,25 @@ export function Bookings() {
                         </select>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <input type="datetime-local" className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-xs"
+                            <input type="datetime-local" className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-xs text-white"
                                 onChange={e => setFormData({ ...formData, startAt: e.target.value })} value={formData.startAt} required />
-                            <input type="datetime-local" className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-xs"
+                            <input type="datetime-local" className="bg-slate-900 border border-slate-700 p-3 rounded-xl text-xs text-white"
                                 onChange={e => setFormData({ ...formData, endAt: e.target.value })} value={formData.endAt} required />
                         </div>
 
                         <textarea
                             placeholder="Participantes (e-mail, e-mail...)"
-                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm min-h-[100px]"
+                            className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm min-h-[100px] text-white"
                             onChange={e => setFormData({ ...formData, participants: e.target.value })}
                             value={formData.participants} required
                         />
 
-                        <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/20">
-                            Confirmar Reserva
+                        {/* <-- Botão dinâmico */}
+                        <button className={`w-full font-bold py-3 rounded-xl transition-all shadow-lg text-white ${editingId
+                                ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
+                            }`}>
+                            {editingId ? 'Salvar Alterações' : 'Confirmar Reserva'}
                         </button>
                     </form>
                 </div>
@@ -149,10 +195,16 @@ export function Bookings() {
                                     </div>
                                 </div>
 
+                                {/* <-- Adicionado o botão de Editar junto com o de Cancelar */}
                                 {b.status === 'Ativa' && (
-                                    <button onClick={() => handleCancel(b.id)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                                        <Trash2 size={20} />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleEdit(b)} title="Editar" className="p-2 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                            <Edit2 size={20} />
+                                        </button>
+                                        <button onClick={() => handleCancel(b.id)} title="Cancelar" className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                            <Trash2 size={20} />
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
