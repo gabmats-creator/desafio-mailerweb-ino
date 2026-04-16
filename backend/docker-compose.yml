@@ -32,5 +32,17 @@ services:
       db:
         condition: service_healthy
 
+  worker:
+    build: .
+    container_name: mailerweb_worker
+    # Executa o worker como um módulo a partir da raiz (/app no container)
+    command: python -m app.worker.worker
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+
 volumes:
   postgres_data:

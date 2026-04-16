@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     MAX_OVERFLOW: int = 10
     POOL_RECYCLE: int = 30
 
+    # --- Configurações de SMTP ---
+    # Em outros ambientes, o GitHub Secrets devem sobrescrever estas configurações
+    SMTP_HOST: str = "sandbox.smtp.mailtrap.io"
+    SMTP_PORT: int = 2525
+    SMTP_USER: str = "1ba06f6f4f7ddc"
+    SMTP_PASSWORD: str = "bc42b76c685bce"
+    FROM_EMAIL: str = "noreply@mailerweb.com"
+
     # --- Configuração do Pydantic Settings ---
     # Prioridade: Variáveis de Ambiente do Sistema (GitHub Secrets) > Arquivo .env > Default no código
     model_config = SettingsConfigDict(
