@@ -1,252 +1,88 @@
+# 🏢 Meeting Room Booking + Async Notification System
 
-# 🧪 Coding Test — Fullstack
-## Meeting Room Booking + Async Notification System
+Uma aplicação Fullstack completa para gerenciamento de reservas de salas, desenvolvida como solução para o desafio técnico. O sistema conta com validações rigorosas de conflitos de horário e um motor de mensageria assíncrono blindado contra falhas, utilizando o Padrão Outbox.
 
----
+## 🚀 Tecnologias Utilizadas
 
-# 📌 Sobre o Desafio
-
-Você deverá desenvolver uma aplicação **Fullstack** para gerenciamento de reservas de salas com um sistema de notificação assíncrono por e-mail.
-
-O objetivo é avaliar como você:
-
-- Estrutura a aplicação
-- Modela os dados
-- Implementa regras de negócio
-- Trata concorrência
-- Organiza processamento assíncrono
-- Escreve testes
-- Documenta decisões técnicas
-
-Você tem liberdade de arquitetura e implementação, desde que atenda aos requisitos descritos.
-
----
-
-# ⏳ Prazo
-
-Após receber o link do desafio, você tem **3 dias corridos** para submeter sua solução.
-
----
-
-# 🚀 Como proceder
-
-1. Faça o **fork** do repositório oficial:
-   https://github.com/MailerWeb/desafio-mailerweb-ino
-
-2. Desenvolva sua solução no seu fork.
-
-3. Ao finalizar, envie o link do seu repositório para avaliação.
-
----
-
-# 🎯 Objetivo do Projeto
-
-Construir uma aplicação que permita:
-
-- Criar e gerenciar salas
-- Criar reservas com prevenção de conflito de horário
-- Editar e cancelar reservas
-- Notificar automaticamente os participantes por e-mail quando houver mudanças
-
----
-
-# 🧱 Stack
-
-## Backend
+**Backend:**
 - Python 3.10+
-- Framework livre (FastAPI, Flask, Django etc.)
-- Banco livre (SQLite permitido, PostgreSQL recomendado)
+- FastAPI (Alta performance e tipagem assíncrona)
+- SQLAlchemy 2.0 (ORM Assíncrono)
+- PostgreSQL (Banco de Dados)
+- Pytest (Testes Automatizados com AsyncMock)
 
-## Frontend
-- React ou Next.js
+**Frontend:**
+- React (Vite)
+- Tailwind CSS (Estilização responsiva)
+- Lucide React (Ícones)
+- Vitest + React Testing Library (Testes Automatizados)
 
-Estrutura de pastas livre (monorepo ou separadas).
-
----
-
-# 📖 Contexto do Sistema
-
-A empresa precisa organizar reservas de salas e garantir que os participantes sejam notificados automaticamente quando uma reunião for:
-
-- Criada
-- Alterada
-- Cancelada
-
-As notificações devem ser processadas de forma **assíncrona**, via worker.
+**Infraestrutura:**
+- Docker & Docker Compose
 
 ---
 
-# 🔧 Requisitos Funcionais
+## 🧠 Decisões Técnicas e Arquitetura
 
-## 1️⃣ Salas
+Para atender aos requisitos de alta concorrência e resiliência, as seguintes decisões arquiteturais foram tomadas:
 
-- Criar sala
-- Listar salas
-- Visualizar detalhes
-- Nome único
-- Capacidade válida
+### 1. Prevenção de Conflitos e Overbooking (Concorrência)
+Para garantir que duas reservas não ocupem o mesmo espaço, a verificação de *overlap* foi delegada ao banco de dados utilizando consultas por intervalo (`new_start < existing_end AND new_end > existing_start`). Associado ao nível de isolamento de transações do banco, isso previne condições de corrida (*race conditions*) durante requisições simultâneas.
 
----
+### 2. Padrão Outbox + Transação Atômica (Mensageria Segura)
+Para evitar o problema clássico de "A reserva foi salva, mas a notificação falhou" (ou vice-versa), foi implementado o **Padrão Outbox**. 
+* Utilizando o *Repository Pattern*, a inserção da `Reserva` e a inserção do `OutboxEvent` ocorrem na mesma transação atômica (`commit` único). 
+* Se o banco de dados cair milissegundos antes da notificação ser registrada, o *Rollback* cancela a reserva, garantindo consistência absoluta dos dados.
 
-## 2️⃣ Reservas
+### 3. Worker Idempotente
+O envio de e-mails é processado de forma assíncrona por um Worker isolado. Ele busca apenas eventos com status `PENDING` e os atualiza para `PROCESSED` na mesma operação. Essa **idempotência** garante que, mesmo que o worker sofra reinicializações forçadas ou realize *retries*, um participante jamais receberá o mesmo e-mail duas vezes.
 
-Uma reserva deve conter:
-
-- Título
-- Sala
-- Horário de início e fim
-- Status (ativa ou cancelada)
-- Participantes
-
-### Regras obrigatórias
-
-- Datas em ISO 8601 com timezone
-- `start_at < end_at`
-- Duração mínima: 15 minutos
-- Duração máxima: 8 horas
-- Não pode haver sobreposição de reservas ativas na mesma sala
-- Reservas canceladas não devem ser removidas
-
-### Overlap
-
-Existe conflito quando:
-
-    new_start < existing_end AND new_end > existing_start
-
-Reservas que apenas encostam no horário são permitidas.
-
-### Concorrência
-
-A aplicação deve impedir que duas requisições simultâneas criem reservas conflitantes.
-
-Documente sua estratégia (transação, lock, constraint etc.).
+### 4. Tratamento Universal de Timezones
+Para eliminar bugs de fuso horário entre o navegador do usuário (BRT) e o servidor em contêiner (UTC), o Frontend foi programado para injetar explicitamente o sufixo ISO 8601 (`Z` - *Zulu Time*) no payload. O backend salva estritamente em UTC e o React renderiza na hora local, eliminando o clássico erro de "reserva pulando 3 horas".
 
 ---
 
-# 🔐 Autenticação
+## ⚙️ Variáveis de Ambiente
 
-Deve existir mecanismo de autenticação.
-
-Você pode usar:
-
-- JWT
-- Token fixo
-- Sistema simplificado
-
-Deve existir conceito de usuário.
-
-Usuários autenticados podem:
-
-- Criar reservas
-- Editar reservas
-- Cancelar reservas
+Localmente, o arquivo settings.py tem todas as variáveis necessárias para que uma execução teste
+seja realizada
 
 ---
 
-# ✉️ Sistema de Mensageria (Obrigatório)
+## 🛠️ Como Executar o Projeto
 
-Além das reservas, o sistema deve implementar um mecanismo assíncrono de notificação por e-mail usando padrão **Outbox + Worker**.
+A aplicação inteira está orquestrada via Docker. Você não precisa instalar nada além do **Docker** e do **Docker Compose** na sua máquina.
 
-## Eventos que devem gerar notificação
+### 1. Subindo a Aplicação
+Na raiz do projeto, execute o comando abaixo para construir as imagens e subir os contêineres:
 
-- BOOKING_CREATED
-- BOOKING_UPDATED
-- BOOKING_CANCELED
+```bash
+docker-compose up --build -d
+```
 
-## Requisitos
+Este comando iniciará simultaneamente:
+- O Banco de Dados (PostgreSQL) na porta `5432`
+- O Backend (API) na porta `8080`
+- O Frontend (React) na porta `5173`
+- O Worker de E-mails (Processo em background)
 
-Ao criar/alterar/cancelar uma reserva:
+### 2. Acessando os Serviços
+- **Frontend:** Abra `http://localhost:5173` no seu navegador.
+- **Backend (Swagger UI):** Acesse `http://localhost:8080/mailerweb/v1/docs` para interagir com a documentação interativa da API.
+- **Banco de dados PostgreSQL:** Acesse um SGBD(Datagrip, PGAdmin, DBeaver...), informando host=localhost, port=5433, user=mailer_user, password=mailer_pass e database=mailerweb_db, será possível visualizar as tabelas criadas e suas respectivas colunas e registros
 
-1. Persistir alteração da reserva
-2. Criar um evento na tabela de Outbox
-3. Garantir que ambos ocorram na mesma transação
+## 🧪 Como Rodar os Testes
 
----
+Os testes garantem o funcionamento rigoroso das regras de negócio (Backend) e a fluidez da experiência do usuário (Frontend).
 
-## Worker
+**Para rodar os testes do Backend (Pytest):**
+Garante validação de datas, proteção de rotas, transações atômicas e idempotência do worker.
+```bash
+docker-compose exec api pytest -v
+```
 
-Deve existir um worker separado que:
-
-- Busca eventos pendentes
-- Processa envio de e-mails
-- Marca como processado
-- Implementa retry com controle de tentativas
-- Evita envio duplicado (idempotência)
-
-O worker pode ser:
-
-- Celery
-- RQ
-- Processo simples em loop
-- Command separado
-
-Documente como executar.
-
----
-## Conteúdo mínimo do e-mail
-
-- Título da reunião
-- Sala
-- Horário
-- Tipo de evento (criada, alterada, cancelada)
-
-Pode ser texto simples.
-
----
-
-# 🧪 Testes
-
-## Backend
-
-Esperamos testes cobrindo:
-
-- Validação de datas
-- Conflito de reserva
-- Permissões
-- Criação de evento no outbox
-- Processamento pelo worker
-- Idempotência de envio
-
-## Frontend
-
-Testes mínimos para:
-
-- Criar reserva
-- Exibir erro de conflito
-- Fluxo básico de login
-- Integração com backend
-
----
-
-# 🖥️ Frontend
-
-Deve permitir:
-
-- Login
-- Listar salas
-- Criar reserva
-- Editar/cancelar reserva
-
-UX deve tratar:
-
-- Loading
-- Erros
-- Feedback ao usuário
-
----
-
-# 📦 Entrega
-
-Seu repositório deve conter:
-
-- Backend
-- Frontend
-- Testes
-- README com:
-  - Como rodar backend
-  - Como rodar frontend
-  - Como rodar worker
-  - Variáveis de ambiente
-  - Decisões técnicas
-
-Boa sorte 🚀
+**Para rodar os testes do Frontend (Vitest):**
+Valida os fluxos de renderização de interface, formulários, alertas e chamadas da API (`axios` mockado).
+```bash
+docker-compose exec frontend npm run test
+```
