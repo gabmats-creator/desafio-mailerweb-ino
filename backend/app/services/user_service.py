@@ -32,7 +32,7 @@ class UserService:
         
         # Valida se o usuário existe e se a senha cruza com o hash do banco
         if not user or not verify_password(form_data.password, user.password_hash):
-            raise RequiresAuthError("E-mail ou senha incorretos.")
+            raise RequiresAuthError(message="E-mail ou senha incorretos.")
 
         # Gera o token embutindo o ID do usuário como 'sub' (subject)
         access_token = create_access_token(data={"sub": str(user.id)})

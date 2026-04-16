@@ -3,7 +3,7 @@ from fastapi import HTTPException
 import traceback
 import logging
 
-from app.exceptions.base import BusinessRuleError, NotFoundError
+from app.exceptions.base import BusinessRuleError, NotFoundError, RequiresAuthError
 
 def handle_route_errors(func):
     @wraps(func)
@@ -15,6 +15,10 @@ def handle_route_errors(func):
         except BusinessRuleError as e:
             # 1. Erros mapeados que vieram do Service com 'code' e 'message'
             raise HTTPException(status_code=e.status_code, detail=e.message)
+
+        except RequiresAuthError as e:
+            # 1. Erros mapeados que vieram do Service com 'code' e 'message'
+            raise HTTPException(status_code=e.code, detail=e.message)
             
         except NotFoundError as e:
             # 1. Erros mapeados que vieram do Service com 'code' e 'message'
