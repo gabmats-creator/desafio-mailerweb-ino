@@ -35,13 +35,19 @@ export function Bookings() {
             const payload = {
                 ...formData,
                 roomId: parseInt(formData.roomId),
-                // Tratamento para garantir que participants vire array tanto na criação quanto na edição
+
+                // === A MÁGICA ACONTECE NESTAS DUAS LINHAS ===
+                // O toISOString() converte o seu 13:45 local para 16:45 UTC e adiciona o 'Z'
+                startAt: new Date(formData.startAt).toISOString(),
+                endAt: new Date(formData.endAt).toISOString(),
+                // ============================================
+
                 participants: typeof formData.participants === 'string'
                     ? formData.participants.split(',').map(i => i.trim()).filter(i => i !== '')
                     : formData.participants
             };
 
-            // <-- Se tiver editingId, faz PUT. Se não, faz POST.
+            // Se tiver editingId, faz PUT. Se não, faz POST.
             if (editingId) {
                 await api.put(`/bookings/${editingId}`, payload);
             } else {
@@ -157,8 +163,8 @@ export function Bookings() {
 
                         {/* <-- Botão dinâmico */}
                         <button className={`w-full font-bold py-3 rounded-xl transition-all shadow-lg text-white ${editingId
-                                ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
-                                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
+                            ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                            : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
                             }`}>
                             {editingId ? 'Salvar Alterações' : 'Confirmar Reserva'}
                         </button>
