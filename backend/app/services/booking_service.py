@@ -132,7 +132,7 @@ class BookingService:
     async def get_booking_by_id(self, booking_id: int) -> BookingDetailResponse:
         booking = await self.booking_repository.get_booking_by_id(booking_id)
 
-        if booking_id is None:
+        if booking is None:
             raise NotFoundError(message=f"Reserva de ID {booking_id} nao encontrada.")
 
         return booking
