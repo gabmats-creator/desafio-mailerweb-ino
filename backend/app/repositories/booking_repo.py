@@ -135,12 +135,13 @@ class BookingRepository:
                 Booking.end_at,
                 Booking.title,
                 Room.name.label("room_name"),
+                Booking.participants,
             )
             .join(Room, Room.id == Booking.room_id)
             .order_by(Booking.id)
         )
 
-        return await paginate(self.database_session, statement)
+        return await paginate(self.database_session, statement, unique=False)
 
     async def get_booking_by_id(self, booking_id: int) -> BookingDetailResponse | None:
         statement = (

@@ -23,10 +23,10 @@ class BookingResponse(BaseDTO):
     start_at: datetime
     end_at: datetime
     title: str
+    participants: list[EmailStr]
 
 class BookingDetailResponse(BookingResponse):
     user_name: str
-    participants: list[EmailStr]
 
 class OutboxEventSchema(BaseDTO):
     booking_id: int | None = None

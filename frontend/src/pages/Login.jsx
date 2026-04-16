@@ -97,7 +97,7 @@ export function Login() {
               type="password" 
               required
               minLength={isLoginMode ? 1 : 6} // No cadastro, exige senha maior
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 text-black block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
