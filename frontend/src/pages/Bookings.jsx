@@ -35,7 +35,7 @@ export function Bookings() {
     <div className="max-w-5xl mx-auto">
       <header className="mb-8">
         <h1 className="text-3xl font-bold">Gerenciar Reservas</h1>
-        <p className="text-slate-400">Agende reuniões e gerencie horários das salas.</p>
+        <p className="text-black">Agende reuniões e gerencie horários das salas.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -90,18 +90,18 @@ export function Bookings() {
             <div key={b.id} className="bg-slate-800/50 border border-slate-700 p-5 rounded-2xl hover:bg-slate-800 transition-all group">
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
-                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${b.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                    {b.status === 'ACTIVE' ? 'Ativa' : 'Cancelada'}
+                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${b.status === 'Ativa' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    {b.status === 'Ativa' ? 'Ativa' : 'Cancelada'}
                   </span>
                   <h3 className="text-xl font-bold text-white">{b.title}</h3>
                   
-                  <div className="flex flex-wrap gap-4 text-sm text-slate-400">
+                  <div className="flex flex-wrap gap-4 text-sm text-white">
                     <div className="flex items-center gap-1.5"><MapPin size={14}/> {b.roomName || 'Sala ' + b.roomId}</div>
                     <div className="flex items-center gap-1.5"><Clock size={14}/> {new Date(b.startAt).toLocaleString('pt-BR')}</div>
                   </div>
                 </div>
 
-                {b.status === 'ACTIVE' && (
+                {b.status === 'Ativa' && (
                   <button onClick={() => handleCancel(b.id)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
                     <Trash2 size={20} />
                   </button>

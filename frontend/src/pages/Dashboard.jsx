@@ -122,70 +122,18 @@ export function Dashboard() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* COLUNA ESQUERDA: Formulário e Salas */}
-        <div className="lg:col-span-1 space-y-6">
-          
-          {/* Card de Nova Reserva */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-bold mb-4">Nova Reserva</h2>
-            <form onSubmit={handleCreateBooking} className="space-y-4 text-sm">
-              <div>
-                <label className="block text-gray-700">Título da Reunião</label>
-                <input type="text" required className="w-full border rounded p-2 mt-1" 
-                  value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-              </div>
-              
-              <div>
-                <label className="block text-gray-700">Sala</label>
-                <select required className="w-full border rounded p-2 mt-1"
-                  value={formData.room_id} onChange={e => setFormData({...formData, room_id: e.target.value})}>
-                  <option value="">Selecione uma sala...</option>
-                  {rooms.map(room => (
-                    <option key={room.id} value={room.id}>{room.name} (Cap: {room.capacity})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-gray-700">Início</label>
-                  <input type="datetime-local" required className="w-full border rounded p-2 mt-1"
-                    value={formData.start_at} onChange={e => setFormData({...formData, start_at: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-gray-700">Fim</label>
-                  <input type="datetime-local" required className="w-full border rounded p-2 mt-1"
-                    value={formData.end_at} onChange={e => setFormData({...formData, end_at: e.target.value})} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700">Participantes (E-mails separados por vírgula)</label>
-                <textarea required className="w-full border rounded p-2 mt-1 text-xs" rows="2"
-                  placeholder="joao@teste.com, maria@teste.com"
-                  value={formData.participants} onChange={e => setFormData({...formData, participants: e.target.value})} />
-              </div>
-
-              <button type="submit" disabled={actionLoading} 
-                className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50">
-                {actionLoading ? 'Processando...' : 'Criar Reserva'}
-              </button>
-            </form>
-          </div>
-        </div>
 
         {/* COLUNA DIREITA: Lista de Reservas */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-bold mb-4">Minhas Reservas</h2>
+            <h2 className="text-black text-lg font-bold mb-4">Minhas Reservas</h2>
             
             {bookings.length === 0 ? (
               <p className="text-gray-500 text-sm">Você ainda não possui reservas cadastradas.</p>
             ) : (
               <div className="space-y-4">
                 {bookings.map(booking => {
-                  const isActive = booking.status === 'ACTIVE';
+                  const isActive = booking.status === 'Ativa';
                   return (
                     <div key={booking.id} className={`p-4 border rounded-lg flex justify-between items-center ${isActive ? 'bg-gray-50' : 'bg-red-50 border-red-200'}`}>
                       <div>
@@ -195,7 +143,7 @@ export function Dashboard() {
                         </h3>
                         <p className="text-sm text-gray-600">Sala: {booking.room_name}</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {new Date(booking.start_at).toLocaleString()} até {new Date(booking.end_at).toLocaleString()}
+                          {new Date(booking.startAt).toLocaleString()} até {new Date(booking.endAt).toLocaleString()}
                         </p>
                       </div>
                       
