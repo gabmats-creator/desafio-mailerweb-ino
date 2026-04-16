@@ -149,7 +149,6 @@ export function Dashboard() {
                       
                       {isActive && (
                         <div className="flex gap-2">
-                          {/* Edição simplificada: Como o foco é MVP, vamos focar só no Cancelamento que já supre a vaga */}
                           <button 
                             onClick={() => handleCancelBooking(booking.id)}
                             className="text-xs text-red-600 hover:text-red-800 border border-red-600 px-3 py-1 rounded">
