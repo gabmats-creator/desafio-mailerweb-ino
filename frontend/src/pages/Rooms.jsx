@@ -1,0 +1,51 @@
+import { useState, useEffect } from 'react';
+import { api } from '../api/axios';
+
+export function Rooms() {
+  const [rooms, setRooms] = useState([]);
+  const [newRoom, setNewRoom] = useState({ name: '', capacity: 0 });
+
+  useEffect(() => { fetchRooms(); }, []);
+
+  const fetchRooms = async () => {
+    const res = await api.get('/rooms/');
+    setRooms(res.data.items || []);
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    await api.post('/rooms/', { name: newRoom.name, capacity: parseInt(newRoom.capacity) });
+    setNewRoom({ name: '', capacity: 0 });
+    fetchRooms();
+  };
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Gerenciar Salas</h1>
+      
+      <form onSubmit={handleCreate} className="bg-white p-4 rounded shadow mb-8 flex gap-4 items-end">
+        <div>
+          <label className="block text-sm">Nome da Sala</label>
+          <input className="border p-2 rounded w-64" value={newRoom.name} 
+            onChange={e => setNewRoom({...newRoom, name: e.target.value})} required />
+        </div>
+        <div>
+          <label className="block text-sm">Capacidade</label>
+          <input type="number" className="border p-2 rounded w-32" value={newRoom.capacity} 
+            onChange={e => setNewRoom({...newRoom, capacity: e.target.value})} required />
+        </div>
+        <button className="bg-green-600 text-white px-6 py-2 rounded">Criar Sala</button>
+      </form>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {rooms.map(room => (
+          <div key={room.id} className="bg-white p-6 rounded shadow border-l-4 border-blue-500">
+            <h3 className="font-bold text-lg">{room.name}</h3>
+            <p className="text-gray-600">Capacidade: {room.capacity} pessoas</p>
+            <p className="text-xs text-gray-400 mt-2">ID: {room.id}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
