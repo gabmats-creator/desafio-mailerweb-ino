@@ -3,17 +3,12 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi_pagination import add_pagination
 from app.api.routers.routers import api_router
 from app.core.settings import settings
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
-from app.models.user import User
-from app.models.room import Room
-from app.models.booking import Booking
-from app.models.outbox import OutboxEvent
 
 
 def _setup_logging() -> None:
@@ -33,9 +28,9 @@ async def lifespan(app: FastAPI):
     # Executa ao iniciar a API (Cria as tabelas de forma assíncrona)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     yield  # A aplicação roda aqui
-    
+
     # Executa ao desligar a API (Fecha as conexões com o banco)
     await engine.dispose()
 
@@ -48,17 +43,19 @@ def create_app() -> FastAPI:
         description="Sistema de gerenciamento de reservas de salas e notificações.",
         version="1.0.0",
         docs_url=f"{settings.PREFIX}/docs" if not settings.PRODUCTION else None,
-        openapi_url=f"{settings.PREFIX}/openapi.json" if not settings.PRODUCTION else None,
+        openapi_url=f"{settings.PREFIX}/openapi.json"
+        if not settings.PRODUCTION
+        else None,
         swagger_ui_parameters={
             "persistAuthorization": True,
             "displayRequestDuration": True,
         },
-        lifespan=lifespan, 
+        lifespan=lifespan,
     )
 
     # ====== ADICIONE O BLOCO DE CORS EXATAMENTE AQUI ======
     origins = [
-        "http://localhost:5173",     # Libera o seu Vite do React (Frontend)
+        "http://localhost:5173",  # Libera o seu Vite do React (Frontend)
         "http://127.0.0.1:5173",
     ]
 
@@ -67,11 +64,10 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],         # Libera POST, GET, PUT, etc
-        allow_headers=["*"],         # Libera envio de Tokens
+        allow_methods=["*"],  # Libera POST, GET, PUT, etc
+        allow_headers=["*"],  # Libera envio de Tokens
     )
     # ======================================================
-
 
     fast_api.openapi_schema = None
 
@@ -109,7 +105,6 @@ def create_app() -> FastAPI:
 
     fast_api.openapi = custom_openapi
 
-
     fast_api.include_router(
         api_router,
         prefix=settings.PREFIX,
@@ -118,6 +113,7 @@ def create_app() -> FastAPI:
     add_pagination(fast_api)
 
     return fast_api
+
 
 # Instância que o Uvicorn vai procurar
 app = create_app()

@@ -10,6 +10,7 @@ from app.exceptions.exception_decorator import handle_route_errors
 
 router = APIRouter()
 
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 @handle_route_errors
 async def create_user(
@@ -20,6 +21,7 @@ async def create_user(
     user_id = await service.create_user(user)
     return SuccessOutputResponse(message=f"Usuário de ID {user_id} criado com sucesso")
 
+
 @router.put("/{user_id}", status_code=status.HTTP_200_OK)
 @handle_route_errors
 async def update_user(
@@ -29,7 +31,10 @@ async def update_user(
 ) -> SuccessOutputResponse:
     service = UserService(UserRepository(database=db))
     await service.update_user(user_id, user)
-    return SuccessOutputResponse(message=f"Usuário de ID {user_id} atualizado com sucesso")
+    return SuccessOutputResponse(
+        message=f"Usuário de ID {user_id} atualizado com sucesso"
+    )
+
 
 # Rota de Login (OAuth2 nativo do Swagger)
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)

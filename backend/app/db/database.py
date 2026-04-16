@@ -5,11 +5,11 @@ from app.core.settings import settings
 # 1. Criação da Engine Assíncrona
 # echo=True faz o SQLAlchemy "printar" no terminal todas as queries SQL executadas (ótimo para debug)
 engine = create_async_engine(
-    settings.POSTGRES_URI, 
+    settings.POSTGRES_URI,
     echo=settings.DEBUG,
     pool_size=settings.POOL_SIZE,
     max_overflow=settings.MAX_OVERFLOW,
-    pool_recycle=settings.POOL_RECYCLE
+    pool_recycle=settings.POOL_RECYCLE,
 )
 
 # 2. Configuração da Sessão

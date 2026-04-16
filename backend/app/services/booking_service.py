@@ -5,7 +5,6 @@ from app.schemas.booking_schema import (
     BookingCreate,
     BookingResponse,
     BookingDetailResponse,
-    OutboxEventSchema,
 )
 from app.exceptions.base import BusinessRuleError, NotFoundError
 from app.models.booking import BookingStatus

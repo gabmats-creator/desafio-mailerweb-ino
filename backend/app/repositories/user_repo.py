@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.user import User
 from app.exceptions.base import BusinessRuleError
 
+
 class UserRepository:
     def __init__(self, database: AsyncSession) -> None:
         self.database_session = database

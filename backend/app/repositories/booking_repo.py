@@ -1,4 +1,3 @@
-import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, insert, update
@@ -13,7 +12,6 @@ from app.schemas.booking_schema import (
     BookingCreate,
     BookingResponse,
     BookingDetailResponse,
-    OutboxEventSchema,
 )
 from app.exceptions.base import BusinessRuleError
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -90,13 +88,19 @@ class BookingRepository:
                 "Erro ao criar reserva. Verifique se a sala informada realmente existe."
             )
 
-    async def update_booking(self, booking_id: int, new_data: BookingCreate, payload: dict) -> None:
-        statement = update(Booking).where(Booking.id == booking_id).values(
-            title=new_data.title,
-            room_id=new_data.room_id,
-            start_at=new_data.start_at,
-            end_at=new_data.end_at,
-            participants=new_data.participants
+    async def update_booking(
+        self, booking_id: int, new_data: BookingCreate, payload: dict
+    ) -> None:
+        statement = (
+            update(Booking)
+            .where(Booking.id == booking_id)
+            .values(
+                title=new_data.title,
+                room_id=new_data.room_id,
+                start_at=new_data.start_at,
+                end_at=new_data.end_at,
+                participants=new_data.participants,
+            )
         )
 
         # Gera o evento de Update
@@ -111,8 +115,10 @@ class BookingRepository:
 
     async def cancel_booking(self, booking_id: int, payload: dict) -> None:
         # Cancela (Soft Delete)
-        statement = update(Booking).where(Booking.id == booking_id).values(
-            status=BookingStatus.CANCELED
+        statement = (
+            update(Booking)
+            .where(Booking.id == booking_id)
+            .values(status=BookingStatus.CANCELED)
         )
 
         # Gera o evento de Cancelamento
