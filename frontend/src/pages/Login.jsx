@@ -6,6 +6,8 @@ export function Login() {
   // Controle para alternar entre Login e Cadastro
   const [isLoginMode, setIsLoginMode] = useState(true);
   
+  // Novo estado para o Nome de Usuário
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -39,8 +41,9 @@ export function Login() {
         
       } else {
         // --- FLUXO DE CADASTRO (Exige JSON padrão) ---
-        // Assumindo que a sua rota de criação de usuário é POST /users/
+        // Enviando o user_name no payload de criação
         await api.post('/users/', {
+          user_name: userName,
           email: email,
           password: password
         });
@@ -48,6 +51,7 @@ export function Login() {
         setSuccess('Conta criada com sucesso! Você já pode fazer login.');
         setIsLoginMode(true); // Volta a tela para o modo de Login
         setPassword(''); // Limpa a senha por segurança
+        setUserName(''); // Limpa o nome
       }
       
     } catch (err) {
@@ -62,6 +66,7 @@ export function Login() {
     setError(null);
     setSuccess(null);
     setPassword(''); // Limpa a senha ao trocar de tela
+    setUserName(''); // Limpa o nome ao trocar de tela
   };
 
   return (
@@ -80,12 +85,27 @@ export function Login() {
         {success && <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm">{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Exibe o campo de Nome apenas se estiver no modo de Cadastro */}
+          {!isLoginMode && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nome de Usuário</label>
+              <input 
+                type="text" 
+                required={!isLoginMode}
+                className="mt-1 text-black block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700">E-mail</label>
             <input 
               type="email" 
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 text-black block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
