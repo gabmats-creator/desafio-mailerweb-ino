@@ -1,6 +1,6 @@
 # 🏢 Meeting Room Booking + Async Notification System
 
-Uma aplicação Fullstack completa para gerenciamento de reservas de salas, desenvolvida como solução para o desafio técnico. O sistema conta com validações rigorosas de conflitos de horário e um motor de mensageria assíncrono blindado contra falhas, utilizando o Padrão Outbox.
+Uma aplicação Fullstack completa para gerenciamento de reservas de salas. O sistema conta com validações rigorosas de conflitos de horário e um motor de mensageria assíncrono blindado contra falhas, utilizando o Padrão Outbox.
 
 ## 🚀 Tecnologias Utilizadas
 
