@@ -10,5 +10,10 @@ export default defineConfig({
     watch: {
       usePolling: true, // Força o Hot Reload a funcionar mapeado via Volume
     }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
   }
 })
