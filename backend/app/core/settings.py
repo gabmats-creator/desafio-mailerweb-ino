@@ -36,7 +36,6 @@ class Settings(BaseSettings):
     # --- Configuração do Pydantic Settings ---
     # Prioridade: Variáveis de Ambiente do Sistema (GitHub Secrets) > Arquivo .env > Default no código
     model_config = SettingsConfigDict(
-        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",  # Ignora variáveis extras
     )
