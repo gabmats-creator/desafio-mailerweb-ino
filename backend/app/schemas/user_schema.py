@@ -3,6 +3,7 @@ from typing import Optional
 from app.schemas.base import BaseDTO
 
 class UserBase(BaseDTO):
+    user_name: str
     email: EmailStr
 
 class UserCreate(UserBase):
@@ -11,6 +12,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseDTO):
     email: Optional[EmailStr] = None
     password: Optional[str] = Field(None, min_length=6)
+    user_name: Optional[str] = None
 
 class TokenResponse(BaseDTO):
     access_token: str

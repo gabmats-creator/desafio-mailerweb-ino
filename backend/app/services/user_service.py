@@ -8,20 +8,22 @@ class UserService:
     def __init__(self, user_repository: UserRepository) -> None:
         self.user_repository: UserRepository = user_repository
 
-    async def create_user(self, user_in: UserCreate) -> int:
-        hashed_pwd = get_password_hash(user_in.password)
-        return await self.user_repository.create_user(user_in.email, hashed_pwd)
+    async def create_user(self, user: UserCreate) -> int:
+        hashed_pwd = get_password_hash(user.password)
+        return await self.user_repository.create_user(user.email, hashed_pwd, user.user_name)
 
-    async def update_user(self, user_id: int, user_in: UserUpdate) -> None:
+    async def update_user(self, user_id: int, user_input: UserUpdate) -> None:
         user = await self.user_repository.get_user_by_id(user_id)
         
         if user is None:
             raise NotFoundError(message=f"Usuário de ID {user_id} não encontrado")
 
-        if user_in.email:
-            user.email = user_in.email
-        if user_in.password:
-            user.password_hash = get_password_hash(user_in.password)
+        if user_input.email:
+            user.email = user_input.email
+        if user_input.password:
+            user.password_hash = get_password_hash(user_input.password)
+        if user_input.user_name:
+            user.user_name = user_input.user_name
 
         await self.user_repository.update_user(user)
 

@@ -16,10 +16,10 @@ class UserRepository:
         statement = select(User).where(User.id == user_id)
         return (await self.database_session.execute(statement)).scalar_one_or_none()
 
-    async def create_user(self, email: str, password_hash: str) -> int:
+    async def create_user(self, email: str, password_hash: str, user_name: str) -> int:
         statement = (
             insert(User)
-            .values(email=email, password_hash=password_hash)
+            .values(email=email, password_hash=password_hash, user_name=user_name)
             .returning(User.id)
         )
         try:
