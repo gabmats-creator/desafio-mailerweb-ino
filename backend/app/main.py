@@ -8,7 +8,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi_pagination import add_pagination
 from app.api.routers.routers import api_router
 from app.core.settings import settings
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 from app.models.user import User
 from app.models.room import Room
@@ -55,6 +55,23 @@ def create_app() -> FastAPI:
         },
         lifespan=lifespan, 
     )
+
+    # ====== ADICIONE O BLOCO DE CORS EXATAMENTE AQUI ======
+    origins = [
+        "http://localhost:5173",     # Libera o seu Vite do React (Frontend)
+        "http://127.0.0.1:5173",
+    ]
+
+    # Atenção: Use 'fast_api.add_middleware' (e não app.add_middleware)
+    fast_api.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],         # Libera POST, GET, PUT, etc
+        allow_headers=["*"],         # Libera envio de Tokens
+    )
+    # ======================================================
+
 
     fast_api.openapi_schema = None
 
