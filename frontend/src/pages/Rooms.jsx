@@ -1,26 +1,54 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/axios';
+import { Alert } from '../components/Alert'; // 1. Importando o componente de Alerta
 
 export function Rooms() {
   const [rooms, setRooms] = useState([]);
   const [newRoom, setNewRoom] = useState({ name: '', capacity: 0 });
+  const [errorMessage, setErrorMessage] = useState(null); // 2. Criando o estado do erro
 
   useEffect(() => { fetchRooms(); }, []);
 
   const fetchRooms = async () => {
-    const res = await api.get('/rooms/');
-    setRooms(res.data.items || []);
+    try {
+      const res = await api.get('/rooms/');
+      setRooms(res.data.items || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await api.post('/rooms/', { name: newRoom.name, capacity: parseInt(newRoom.capacity) });
-    setNewRoom({ name: '', capacity: 0 });
-    fetchRooms();
+    setErrorMessage(null); // Limpa qualquer erro anterior antes de tentar de novo
+
+    try {
+      await api.post('/rooms/', { name: newRoom.name, capacity: parseInt(newRoom.capacity) });
+      setNewRoom({ name: '', capacity: 0 });
+      fetchRooms();
+    } catch (err) {
+      // 3. Tratamento blindado contra tela preta
+      const detail = err.response?.data?.detail;
+      let message = "Erro inesperado ao criar sala.";
+
+      if (typeof detail === 'string') {
+        // Se for erro normal (Ex: "Já existe uma sala com este nome")
+        message = detail;
+      } else if (Array.isArray(detail)) {
+        // Se for erro 422 do FastAPI, ele pega a mensagem de dentro do Array
+        message = detail[0]?.msg || "Erro de validação nos dados enviados.";
+      }
+
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(null), 5000); // Some depois de 5 segundos
+    }
   };
 
   return (
     <div>
+      {/* 4. Inserindo o Alerta no topo */}
+      <Alert message={errorMessage} onClose={() => setErrorMessage(null)} />
+
       <h1 className="text-2xl font-bold mb-6">Gerenciar Salas</h1>
       
       <form onSubmit={handleCreate} className="bg-white p-4 rounded shadow mb-8 flex gap-4 items-end">

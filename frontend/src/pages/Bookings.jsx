@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/axios';
 import { Plus, Trash2, Users, Clock, MapPin } from 'lucide-react';
+import { Alert } from '../components/Alert'; // <-- Importado o Alerta
 
 export function Bookings() {
     const [bookings, setBookings] = useState([]);
     const [rooms, setRooms] = useState([]);
     const [formData, setFormData] = useState({ title: '', roomId: '', startAt: '', endAt: '', participants: '' });
+    const [errorMessage, setErrorMessage] = useState(null); // <-- Estado para gerenciar a mensagem
 
     useEffect(() => {
         api.get('/rooms/').then(res => setRooms(res.data.items || []));
@@ -19,6 +21,7 @@ export function Bookings() {
 
     const handleCreate = async (e) => {
         e.preventDefault();
+        setErrorMessage(null); // <-- Limpa erros anteriores antes de tentar novamente
         try {
             const payload = {
                 ...formData,
@@ -28,11 +31,45 @@ export function Bookings() {
             await api.post('/bookings/', payload);
             setFormData({ title: '', roomId: '', startAt: '', endAt: '', participants: '' });
             fetchBookings();
-        } catch (err) { alert("Erro ao criar reserva"); }
+        } catch (err) {
+            // <-- Tratamento inteligente de erro (Texto ou Array 422)
+            const detail = err.response?.data?.detail;
+            let message = "Erro inesperado ao criar reserva.";
+
+            if (typeof detail === 'string') {
+                message = detail;
+            } else if (Array.isArray(detail)) {
+                message = detail[0]?.msg || "Erro de validação nos dados enviados.";
+            }
+
+            setErrorMessage(message);
+            setTimeout(() => setErrorMessage(null), 5000);
+        }
+    };
+
+    // Declarando o handleCancel (que estava faltando) com a mesma lógica de erro
+    const handleCancel = async (id) => {
+        if (!window.confirm("Deseja cancelar esta reserva?")) return;
+        setErrorMessage(null);
+        try {
+            await api.patch(`/bookings/${id}/cancel`);
+            fetchBookings();
+        } catch (err) {
+            const detail = err.response?.data?.detail;
+            let message = "Erro inesperado ao cancelar reserva.";
+            if (typeof detail === 'string') message = detail;
+            else if (Array.isArray(detail)) message = detail[0]?.msg || "Erro de validação.";
+            
+            setErrorMessage(message);
+            setTimeout(() => setErrorMessage(null), 5000);
+        }
     };
 
     return (
         <div className="max-w-5xl mx-auto">
+            {/* <-- Inserindo o componente de Alerta no topo */}
+            <Alert message={errorMessage} onClose={() => setErrorMessage(null)} />
+
             <header className="mb-8">
                 <h1 className="text-3xl font-bold">Gerenciar Reservas</h1>
                 <p className="text-black">Agende reuniões e gerencie horários das salas.</p>
