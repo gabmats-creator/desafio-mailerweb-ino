@@ -10,6 +10,10 @@ from app.api.routers.routers import api_router
 from app.core.settings import settings
 
 from app.db.database import engine, Base
+from app.models.user import User
+from app.models.room import Room
+from app.models.booking import Booking
+from app.models.outbox import OutboxEvent
 
 
 def _setup_logging() -> None:
